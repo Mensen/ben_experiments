@@ -3,6 +3,7 @@
 Corsi Block Test
 
 Inselspital Bern
+Bern Network for Sleep Epilepsy and Consciousness
 Sinergia Sleep and Stroke
 Neuropsychological Test Battery
 
@@ -28,7 +29,7 @@ def boxCoordinates(centre, size):
 
 def getBoxPositions(num_box, box_size):
 
-    #calculate minimum safe distance    
+    #calculate minimum safe distance
     min_dist = 1.0 / num_box + box_size
        
     # check minimum distance for all element pair distances
@@ -109,8 +110,11 @@ def corsiBlockTest(num_box):
                 myMouse.clickReset()
                 click_position = myMouse.getPos()
                 
-                if abs(click_position[0] - my_boxes[block].vertices[0][0]) < 0.2 and \
-                abs(click_position[1] - my_boxes[block].vertices[0][1]) < 0.2:
+                # make sure click position is within block
+                if click_position[0] > my_boxes[block].vertices[0][0] and \
+                click_position[0] < my_boxes[block].vertices[2][0] and \
+                click_position[1] > my_boxes[block].vertices[0][1] and \
+                click_position[1] < my_boxes[block].vertices[1][1]:
                     
                     # change to greeen
                     my_boxes[block].fillColor = [-1, 1 , -1]
@@ -145,11 +149,49 @@ def corsiBlockTest(num_box):
     for block in range(0, len(my_boxes)):
         my_boxes[block].setAutoDraw(False)   
         
-    myWin.flip() 
+    myWin.flip()
     return block + 1
+
+def welcomeMessage(text):
+    event.Mouse(visible=False)
+
+    # welcome message
+    message1 = visual.TextStim(win=myWin,
+       alignHoriz='center',
+       alignVert='center', 
+       color=(0, 0, 0),
+       colorSpace='rgb',
+       units='', 
+       pos=[0,0],
+       text=text)
+       
+    # put the message on the screen
+    message1.draw()   
+    myWin.flip()                   
+    # wait for keypress    
+    core.wait(1)
     
+    # welcome message
+    message1 = visual.TextStim(win=myWin,
+       alignHoriz='center',
+       alignVert='center', 
+       color=(0, 0, 0),
+       colorSpace='rgb',
+       units='', 
+       pos=[0,0],
+       text='Hit any key when ready')
+       
+    # put the message on the screen
+    message1.draw()   
+    myWin.flip()                   
+    # wait for keypress
+    event.waitKeys()
+
+
 # open a unique window
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=0, monitor="testMonitor", units="norm")
+
+welcomeMessage('Corsi Block Test')
 
 num_trials = 4
 # loop trials
