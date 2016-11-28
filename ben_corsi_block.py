@@ -14,6 +14,21 @@ from psychopy import visual, core, event, data  # import some libraries from Psy
 import numpy as np
 import scipy.spatial.distance
 
+def waitForClick():
+    
+    # define mouse
+    myMouse = event.Mouse(win=myWin, visible=True)    
+    
+    while True:
+        myMouse.clickReset()
+        mouse1, mouse2, mouse3 = myMouse.getPressed()
+    
+        if mouse1:
+            return 1
+        if mouse3:
+            return 255
+        
+
 def boxCoordinates(centre, size):
 
     size = size / 2    
@@ -77,11 +92,14 @@ def makeBlocks(num_box):
                                                  
     # flip the boxes on the screen                  
     myWin.flip()
-    event.waitKeys()
+    #event.waitKeys()
+    core.wait(2)
     return my_boxes
 
 
 def corsiBlockTest(num_box):
+
+    display_time = 0.5
 
     for block in range(0, len(my_boxes)):
 
@@ -89,7 +107,7 @@ def corsiBlockTest(num_box):
         
         myWin.flip()
         
-        core.wait(0.5)
+        core.wait(display_time)
         
         my_boxes[block].fillColor = [0.5, 0.5 , 0.5]
 
@@ -116,7 +134,7 @@ def corsiBlockTest(num_box):
                 click_position[1] > my_boxes[block].vertices[0][1] and \
                 click_position[1] < my_boxes[block].vertices[1][1]:
                     
-                    # change to greeen
+                    # change to green
                     my_boxes[block].fillColor = [-1, 1 , -1]
                     myWin.flip()
                     # change back to grey (flipped after next click)
@@ -183,33 +201,59 @@ def welcomeMessage(text):
        
     # put the message on the screen
     message1.draw()   
-    myWin.flip()                   
-    # wait for keypress
-    event.waitKeys()
-
+    myWin.flip()
+             
+    # wait for mousepress
+    button = waitForClick()
+#    print "variable is set to %.2f" % (button)               
+     
 
 # open a unique window
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=0, monitor="testMonitor", units="norm")
 
+# run the welcomeMessage function
 welcomeMessage('Corsi Block Test')
 
-num_trials = 4
+# maximum number of trials
+trials_max = 5
+# starting number of boxes
+num_boxes = 3
+consecutive_fails = 0
+max_fails = 3
+
 # loop trials
-for trial in range(0, num_trials):
-    
+trial = 0
+while trial < trials_max:
+       
     # draw the boxes on screen
-    my_boxes = makeBlocks(trial + 3)
+    my_boxes = makeBlocks(num_boxes)
+    
     # test the participant
     flag_correct = corsiBlockTest(my_boxes)
 
-    print('you got %d of %d correct') %(flag_correct, trial + 3) 
+    # print result of trial in the command line
+    print('you got %d of %d correct') %(flag_correct, num_boxes) 
 
-    # look for esc key
+    if flag_correct == num_boxes:
+        # if correct increase number of boxes
+        num_boxes = num_boxes + 1
+        # reset fails if correct
+        consecutive_fails = 0
+    elif flag_correct < num_boxes:
+        # count the fails in a row
+        consecutive_fails = consecutive_fails + 1
+        
+    # look for exit criteria (right click or consecutive fails)
     if flag_correct == 255:
         break
+    elif consecutive_fails == max_fails:
+        break
+            
+    # keep trial count in while loop
+    trial = trial + 1
         
 # wait for keypress
-event.waitKeys()
+# event.waitKeys()
 
 # quit the program
 core.wait(0.25)
