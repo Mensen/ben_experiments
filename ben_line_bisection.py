@@ -42,10 +42,11 @@ def lineBisectionTask(line_length, position):
         
         if mouse1:
 
-            #check if click is within reason            
+            # get the position of the click
             click_position = myMouse.getPos()
 
-            if abs(click_position[0] - position[0]) < 0.2 and \
+            #check if click is within reason or ignore           
+            if abs(click_position[0] - position[0]) < 0.4 and \
             abs(click_position[1] - position[1]) < 0.2:
                 
                 # compute distance to line center
@@ -108,16 +109,26 @@ message1 = visual.TextStim(win=myWin,
 message1.draw()   
 myWin.flip()                   
 # wait for keypress    
-event.waitKeys()
+core.wait(2)
+#event.waitKeys()
 
+# define maximum number of trials
+max_trials = 20
 
 # run trials until 
-while True:
+trial_count = 0
+while trial_count < max_trials:
+    
     # get random values for position and length
-    line_length = random.uniform(0.8, 1)
+    min_length = 0.7
+    max_length = 1.2
+    line_length = random.uniform(min_length, max_length)
+    
+    # position boundaries depends on line length
     position = []
-    position.append(random.uniform(-0.2, 0.2))
-    position.append(random.uniform(-0.6, 0.6))
+    max_x = 0.95 - max_length / 2
+    position.append(random.uniform(-max_x, max_x))
+    position.append(random.uniform(-0.7, 0.7))
     
     # run the task 
     estimate = lineBisectionTask(line_length, position)  
@@ -134,8 +145,11 @@ while True:
     # go to next trial in the loop
     data_out.nextEntry()    
 
+    # advance trial counter
+    trial_count = trial_count + 1
+
 # wait 500ms and close the screen
-core.wait(0.25)
+core.wait(0.5)
 
 myWin.close()
 core.quit
