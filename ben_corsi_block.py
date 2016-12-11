@@ -97,11 +97,11 @@ def makeBlocks(num_box):
     return my_boxes
 
 
-def corsiBlockTest(num_box):
+def corsiBlockTest(num_to_test):
 
     display_time = 0.5
-
-    for block in range(0, len(my_boxes)):
+    
+    for block in range(0, num_to_test):
 
         my_boxes[block].fillColor = [-1, -1, 1]
         
@@ -113,7 +113,7 @@ def corsiBlockTest(num_box):
 
         myWin.flip()
    
-    for block in range(0, len(my_boxes)): 
+    for block in range(0, num_to_test): 
         # wait for a button press
         myMouse = event.Mouse(win=myWin, visible=True)
         
@@ -153,6 +153,7 @@ def corsiBlockTest(num_box):
                         my_boxes[n].setAutoDraw(False)   
         
                     myWin.flip() 
+                                        
                     return block  
             
             if mouse3:
@@ -168,7 +169,10 @@ def corsiBlockTest(num_box):
         my_boxes[block].setAutoDraw(False)   
         
     myWin.flip()
-    return block + 1
+    
+    print "variable block is set to %.2f" % (block)    
+    
+    return num_to_test
 
 def welcomeMessage(text):
     event.Mouse(visible=False)
@@ -205,7 +209,6 @@ def welcomeMessage(text):
              
     # wait for mousepress
     button = waitForClick()
-#    print "variable is set to %.2f" % (button)               
      
 
 # open a unique window
@@ -217,7 +220,8 @@ welcomeMessage('Corsi Block Test')
 # maximum number of trials
 trials_max = 5
 # starting number of boxes
-num_boxes = 3
+num_boxes = 7
+num_to_test = 3
 consecutive_fails = 0
 max_fails = 3
 
@@ -225,21 +229,25 @@ max_fails = 3
 trial = 0
 while trial < trials_max:
        
+    # check for sufficient boxes
+    if num_boxes < num_to_test:
+        num_boxes = num_to_test
+       
     # draw the boxes on screen
-    my_boxes = makeBlocks(num_boxes)
+    my_boxes = makeBlocks(num_boxes)   
     
     # test the participant
-    flag_correct = corsiBlockTest(my_boxes)
+    flag_correct = corsiBlockTest(num_to_test)
 
     # print result of trial in the command line
-    print('you got %d of %d correct') %(flag_correct, num_boxes) 
+    print('you got %d of %d correct') %(flag_correct, num_to_test) 
 
-    if flag_correct == num_boxes:
+    if flag_correct == num_to_test:
         # if correct increase number of boxes
-        num_boxes = num_boxes + 1
+        num_to_test = num_to_test + 1
         # reset fails if correct
         consecutive_fails = 0
-    elif flag_correct < num_boxes:
+    elif flag_correct < num_to_test:
         # count the fails in a row
         consecutive_fails = consecutive_fails + 1
         
