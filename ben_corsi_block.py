@@ -31,13 +31,15 @@ def waitForClick():
 
 def boxCoordinates(centre, size):
 
-    size = size / 2    
+    screen_ratio = 14/9.0
+
+    size = size / 2
     
     box_vertices = [ \
-    [centre[0] - size, centre[1] - size], \
-    [centre[0] - size, centre[1] + size], \
-    [centre[0] + size, centre[1] + size], \
-    [centre[0] + size, centre[1] - size] ]
+    [centre[0] - size / screen_ratio, centre[1] - size], \
+    [centre[0] - size / screen_ratio, centre[1] + size], \
+    [centre[0] + size / screen_ratio, centre[1] + size], \
+    [centre[0] + size / screen_ratio, centre[1] - size] ]
     
     return box_vertices
 
@@ -152,7 +154,7 @@ def corsiBlockTest(num_to_test):
                     for n in range(0, len(my_boxes)):
                         my_boxes[n].setAutoDraw(False)   
         
-                    myWin.flip() 
+                    myWin.flip()
                                         
                     return block  
             
@@ -212,7 +214,7 @@ def welcomeMessage(text):
      
 
 # open a unique window
-myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=0, monitor="testMonitor", units="norm")
+myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMonitor", units="norm")
 
 # run the welcomeMessage function
 welcomeMessage('Corsi Block Test')
