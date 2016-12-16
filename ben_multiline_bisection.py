@@ -23,8 +23,9 @@ def convertToPos(line_length, position):
 def multiLineBisectionTask(line_length, position_x, position_y):
     
     # pre-allocation step
-    myLine = number_of_lines*[None]
-    markedLine = number_of_lines*[None]
+    myLine = number_of_lines * [None]
+    markedLine = number_of_lines * [None]
+    trial_time = number_of_lines * [None]
     
     # set flag for marked lines 
     flag_marked = np.ones((number_of_lines, 1), dtype=bool)    
@@ -52,6 +53,9 @@ def multiLineBisectionTask(line_length, position_x, position_y):
     estimate = number_of_lines*[None]  
     counter = 0    
     
+    # start a trial clock
+    trial_clock = core.Clock()    
+    
     # wait for a button press
     myMouse = event.Mouse(win=myWin, visible=True)
     while counter < number_of_lines:
@@ -72,8 +76,11 @@ def multiLineBisectionTask(line_length, position_x, position_y):
             abs(click_position[1] - position_y[line_index]) < 0.2 and \
             flag_marked[line_index]:
                 
+                # trial time
+                trial_time[line_index] = trial_clock.getTime()                
+                
                 # compute distance to line center
-                estimate[counter] = position_x[line_index] - click_position[0]
+                estimate[line_index] = position_x[line_index] - click_position[0]
                 print "you were %.3f off the target" % (estimate[counter])               
                 
                 # draw the estimate
@@ -90,7 +97,7 @@ def multiLineBisectionTask(line_length, position_x, position_y):
 
                 # mark the line bisection as complete
                 flag_marked[line_index] = False
-
+                
                 # update line counter
                 counter += 1               
                
@@ -114,7 +121,7 @@ def multiLineBisectionTask(line_length, position_x, position_y):
         markedLine[n].setAutoDraw(False)
     
     # return from the function with all the estimates    
-    return estimate
+    return estimate, trial_time
                   
 
 # initialise experiment
@@ -167,10 +174,10 @@ while trial_count < max_trials:
         position_x[n] = random.uniform(-x_boundary, x_boundary)
         
     # y position is even spread over range    
-    position_y = np.linspace(-0.8, 0.8, num = number_of_lines) + random.uniform(-0.03, 0.03)
+    position_y = np.linspace(0.8, -0.8, num = number_of_lines) + random.uniform(-0.03, 0.03)
     
     # run the task 
-    estimate = multiLineBisectionTask(line_length, position_x, position_y)  
+    estimate, trial_time = multiLineBisectionTask(line_length, position_x, position_y)  
     
     if estimate[0] is 2:
         break
@@ -181,7 +188,8 @@ while trial_count < max_trials:
     data_out.addData('y_pos', position_y)
     data_out.addData('length', line_length)
     data_out.addData('error', estimate)
-    
+    data_out.addData('trial_time', trial_time)
+
     # go to next trial in the loop
     data_out.nextEntry()    
 
