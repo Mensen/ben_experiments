@@ -10,7 +10,8 @@ Neuropsychological Test Battery
 """
 
 from psychopy import visual, core, event, data  # import some libraries from PsychoPy
-from ben_tools import waitForClick
+# from ben_tools import waitForClick, takeABreak, pushToContinue
+import ben_tools
 import random
 import numpy as np
 
@@ -104,6 +105,9 @@ def multiLineBisectionTask(line_length, position_x, position_y):
                 # draw marking
                 myWin.flip()
                     
+                # pause after marking to avoid double marking    
+                core.wait(0.5)   
+                
             # if the user clicks the bottom right it exits the program
             elif click_position[0] > 0.9 and \
             click_position[1] < -0.9:
@@ -150,7 +154,7 @@ message1.draw()
 myWin.flip()        
            
 # wait for mousepress
-button = waitForClick(myWin)
+button = ben_tools.waitForClick(myWin)
 
 # define maximum number of trials
 max_trials = 2
@@ -196,6 +200,9 @@ while trial_count < max_trials:
     # advance trial counter
     trial_count = trial_count + 1
 
+    if trial_count is not max_trials:
+        ben_tools.pushToContinue(myWin)
+    
 # wait 500ms and close the screen
 core.wait(0.5)
 
