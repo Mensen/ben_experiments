@@ -148,7 +148,8 @@ def corsiBlockTest(num_to_test):
                     my_boxes[block].fillColor = [1, -1 , -1]
                     myWin.flip()
                     
-                    core.wait(0.5)
+                    # wait for mousepress
+                    button = waitForClick()  
                     
                     # exit with 
                     for n in range(0, len(my_boxes)):
@@ -172,7 +173,7 @@ def corsiBlockTest(num_to_test):
         
     myWin.flip()
     
-    print "variable block is set to %.2f" % (block)    
+    # print "variable block is set to %.2f" % (block)    
     
     return num_to_test
 
@@ -220,7 +221,7 @@ myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMoni
 welcomeMessage('Corsi Block Test')
 
 # maximum number of trials
-trials_max = 5
+trials_max = 9
 # starting number of boxes
 num_boxes = 7
 num_to_test = 3
