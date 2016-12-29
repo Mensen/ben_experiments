@@ -11,23 +11,29 @@ Neuropsychological Test Battery
 """
 
 from psychopy import visual, core, event, data  # import some libraries from PsychoPy
+import ben_tools
 import numpy as np
 import scipy.spatial.distance
+import sys
 
-def waitForClick():
-    
-    # define mouse
-    myMouse = event.Mouse(win=myWin, visible=True)    
-    
-    while True:
-        myMouse.clickReset()
-        mouse1, mouse2, mouse3 = myMouse.getPressed()
-    
-        if mouse1:
-            return 1
-        if mouse3:
-            return 255
-        
+# select mode: 'classic' (all blocks present); 'scale' (num blocks scales with task)
+mode = 'scale'
+# maximum number of trials
+trials_max = 20
+display_time = 0.5
+# starting number of boxes
+num_boxes = 9
+num_to_test = 3
+max_fails = 3
+
+# basic box background color
+fill_color = [0.7, 0.7, 0.7]
+
+# process arguments for personalised save name
+save_name = 'output_cb_' + mode[0] + '_test'
+if len(sys.argv) > 1:
+    save_name = 'output_cb_' + mode[0] + '_' + sys.argv[1]
+
 
 def boxCoordinates(centre, size):
 
@@ -85,7 +91,7 @@ def makeBlocks(num_box):
                   lineColor=[-1, -1, -1], 
                   lineColorSpace='rgb',
                   vertices = box_vertices[block],
-                  fillColor = [0.5, 0.5 , 0.5],
+                  fillColor = fill_color,
                   fillColorSpace = 'rgb',
                   lineWidth=5)      
 
@@ -100,8 +106,9 @@ def makeBlocks(num_box):
 
 
 def corsiBlockTest(num_to_test):
-
-    display_time = 0.5
+    
+    # pre-allocate trial time
+    trial_time = num_to_test * [0]    
     
     for block in range(0, num_to_test):
 
@@ -111,9 +118,12 @@ def corsiBlockTest(num_to_test):
         
         core.wait(display_time)
         
-        my_boxes[block].fillColor = [0.5, 0.5 , 0.5]
+        my_boxes[block].fillColor = fill_color
 
         myWin.flip()
+        
+    # start a trial clock
+    trial_clock = core.Clock() 
    
     for block in range(0, num_to_test): 
         # wait for a button press
@@ -130,6 +140,8 @@ def corsiBlockTest(num_to_test):
                 myMouse.clickReset()
                 click_position = myMouse.getPos()
                 
+                trial_time[block] = trial_clock.getTime()               
+                
                 # make sure click position is within block
                 if click_position[0] > my_boxes[block].vertices[0][0] and \
                 click_position[0] < my_boxes[block].vertices[2][0] and \
@@ -140,42 +152,47 @@ def corsiBlockTest(num_to_test):
                     my_boxes[block].fillColor = [-1, 1 , -1]
                     myWin.flip()
                     # change back to grey (flipped after next click)
-                    my_boxes[block].fillColor = [0.5, 0.5 , 0.5]
+                    my_boxes[block].fillColor = fill_color
                     break
                 
                 else:
-                    # change to red
-                    my_boxes[block].fillColor = [1, -1 , -1]
+                    # change all to red
+                    for n in range(0, len(my_boxes)):
+                        my_boxes[n].fillColor = [1, -1 , -1]
                     myWin.flip()
-                    
-                    # wait for mousepress
-                    button = waitForClick()  
-                    
+                                        
                     # exit with 
                     for n in range(0, len(my_boxes)):
                         my_boxes[n].setAutoDraw(False)   
         
+                    # show red boxes for a second
+                    core.wait(1) 
                     myWin.flip()
                                         
-                    return block  
+                    return block, trial_time
             
             if mouse3:
-                for block in range(0, len(my_boxes)):
-                    my_boxes[block].setAutoDraw(False)   
+                for n in range(0, len(my_boxes)):
+                    my_boxes[n].setAutoDraw(False)
         
                 myWin.flip() 
-                return 255      
+                return 255, trial_time     
             
-    # erase blocks
-    core.wait(0.5)
-    for block in range(0, len(my_boxes)):
-        my_boxes[block].setAutoDraw(False)   
+    # if all correct flash all green
+    for n in range(0, len(my_boxes)):
+        my_boxes[n].fillColor = [-1, 1 , -1]
+    myWin.flip()
         
+    # erase the block
+    for n in range(0, len(my_boxes)):
+        my_boxes[n].setAutoDraw(False)   
+        
+    core.wait(1)    
     myWin.flip()
     
     # print "variable block is set to %.2f" % (block)    
     
-    return num_to_test
+    return num_to_test, trial_time
 
 def welcomeMessage(text):
     event.Mouse(visible=False)
@@ -211,8 +228,14 @@ def welcomeMessage(text):
     myWin.flip()
              
     # wait for mousepress
-    button = waitForClick()
-     
+    button = ben_tools.waitForClick(myWin)
+
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+# main section
+# prepare experiment data to save
+data_out = data.ExperimentHandler(name='corsi block', 
+    version=mode, 
+    dataFileName=save_name)   
 
 # open a unique window
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMonitor", units="norm")
@@ -220,31 +243,42 @@ myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMoni
 # run the welcomeMessage function
 welcomeMessage('Corsi Block Test')
 
-# maximum number of trials
-trials_max = 9
-# starting number of boxes
-num_boxes = 7
-num_to_test = 3
-consecutive_fails = 0
-max_fails = 3
-
 # loop trials
 trial = 0
+consecutive_fails = 0
 while trial < trials_max:
        
     # check for sufficient boxes
     if num_boxes < num_to_test:
         num_boxes = num_to_test
-       
+    
+    if mode is 'scale':
+        # number of boxes adjust to test number
+        num_boxes = num_to_test
+    
     # draw the boxes on screen
     my_boxes = makeBlocks(num_boxes)   
     
     # test the participant
-    flag_correct = corsiBlockTest(num_to_test)
+    flag_correct, trial_time = corsiBlockTest(num_to_test)
 
+    # exit signal
+    if flag_correct == 255:
+        break
+    
     # print result of trial in the command line
     print('you got %d of %d correct') %(flag_correct, num_to_test) 
+    print('variable is %.2f') %(trial_time[0]) 
 
+
+    # save the results
+    data_out.addData('number_to_test', num_to_test)
+    data_out.addData('number_correct', flag_correct)
+    data_out.addData('trial_time', trial_time)
+#    # go to next trial in the loop
+    data_out.nextEntry()    
+
+    # process arguments for next trial
     if flag_correct == num_to_test:
         # if correct increase number of boxes
         num_to_test = num_to_test + 1
@@ -255,9 +289,7 @@ while trial < trials_max:
         consecutive_fails = consecutive_fails + 1
         
     # look for exit criteria (right click or consecutive fails)
-    if flag_correct == 255:
-        break
-    elif consecutive_fails == max_fails:
+    if consecutive_fails == max_fails:
         break
             
     # keep trial count in while loop
