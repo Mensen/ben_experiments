@@ -17,7 +17,9 @@ import scipy.spatial.distance
 import sys
 
 # select mode: 'classic' (all blocks present); 'scale' (num blocks scales with task)
-mode = 'scale'
+mode = 'classic'
+direction = 'reverse'
+
 # maximum number of trials
 trials_max = 20
 display_time = 0.5
@@ -125,7 +127,12 @@ def corsiBlockTest(num_to_test):
     # start a trial clock
     trial_clock = core.Clock() 
    
-    for block in range(0, num_to_test): 
+    # adjust loop for direction
+    loop_range = range(0, num_to_test)
+    if direction is 'reverse':
+        loop_range.reverse()
+   
+    for block in loop_range: 
         # wait for a button press
         myMouse = event.Mouse(win=myWin, visible=True)
         
@@ -168,7 +175,11 @@ def corsiBlockTest(num_to_test):
                     # show red boxes for a second
                     core.wait(1) 
                     myWin.flip()
-                                        
+                           
+                    if direction is 'reverse':
+                        trial_time.reverse()
+                        block = num_to_test-block
+                          
                     return block, trial_time
             
             if mouse3:
@@ -183,14 +194,16 @@ def corsiBlockTest(num_to_test):
         my_boxes[n].fillColor = [-1, 1 , -1]
     myWin.flip()
         
-    # erase the block
+    # erase the squares
     for n in range(0, len(my_boxes)):
         my_boxes[n].setAutoDraw(False)   
         
     core.wait(1)    
     myWin.flip()
     
-    # print "variable block is set to %.2f" % (block)    
+    # check for reverse condition
+    if direction is 'reverse':
+        trial_time.reverse()
     
     return num_to_test, trial_time
 
@@ -268,8 +281,7 @@ while trial < trials_max:
     
     # print result of trial in the command line
     print('you got %d of %d correct') %(flag_correct, num_to_test) 
-    print('variable is %.2f') %(trial_time[0]) 
-
+    # print('variable is %.2f') %(trial_time[0]) 
 
     # save the results
     data_out.addData('number_to_test', num_to_test)
