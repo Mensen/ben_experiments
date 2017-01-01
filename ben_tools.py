@@ -6,6 +6,7 @@ Created on Mon Dec 12 23:01:57 2016
 """
 
 from psychopy import event, visual  # import some libraries from PsychoPy
+import argparse
 
 
 def waitForClick(myWin):
@@ -57,4 +58,14 @@ def pushToContinue(myWin):
     # wait for mousepress
     button = waitForClick(myWin)
     
+def getStandardOptions():
+    # initiate the parser object
+    parser = argparse.ArgumentParser()
     
+    # add the default values
+    parser.add_argument("-f", "--file", dest="filename",
+                      help="write report to FILE", metavar="FILE")
+    parser.add_argument("-s", action="store_true", dest="flag_save", default=False,
+                      help="boolean flag for saving data to file")
+                      
+    return parser
