@@ -15,6 +15,13 @@ import ben_tools
 import random
 import numpy as np
 
+# define parameters
+max_trials = 5
+number_of_lines = 8
+
+min_length = 0.7
+max_length = 1.2
+
 # define functions
 def convertToPos(line_length, position):
     vertices=[(position[0] - line_length/2.0, position[1]), \
@@ -82,7 +89,7 @@ def multiLineBisectionTask(line_length, position_x, position_y):
                 
                 # compute distance to line center
                 estimate[line_index] = position_x[line_index] - click_position[0]
-                print "you were %.3f off the target" % (estimate[counter])               
+                print "you were %.3f off the target" % (estimate[line_index])               
                 
                 # draw the estimate
                 # print "variable is a %s" % (type(position[0]))
@@ -132,7 +139,7 @@ def multiLineBisectionTask(line_length, position_x, position_y):
 # prepare experiment data to save
 data_out = data.ExperimentHandler(name='line bisection', 
                                   version='alpha', 
-                                  dataFileName='output_lb')
+                                  dataFileName='output_mlb')
                                   
 # open a new window
 # myWin = visual.Window(fullscr=1, color=[1, 1, 1], monitor="testMonitor", units="degs")
@@ -156,12 +163,6 @@ myWin.flip()
 # wait for mousepress
 button = ben_tools.waitForClick(myWin)
 
-# define maximum number of trials
-max_trials = 2
-number_of_lines = 8
-
-min_length = 0.7
-max_length = 1.2
 x_boundary = 0.98 - max_length / 2
 
 # run trials until 

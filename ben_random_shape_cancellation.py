@@ -8,6 +8,13 @@ Created on Fri Dec 16 00:00:58 2016
 from psychopy import visual, core, event, data  # import some libraries from PsychoPy
 from ben_tools import waitForClick
 import numpy as np
+import os
+
+# experiment parameters
+number_of_trials = 1
+
+# available images
+images = [os.path.join("rsc_images", "rsc_bw.png")]
 
 def objectSelect(current_image):
     # prepare the image
@@ -78,12 +85,6 @@ rsc_image = visual.ImageStim(myWin,
     size=[2, 2])
 rsc_image.autoDraw=True
     
-# pull the images into a list
-images = []
-images.append("rsc_bw.png")
-
-number_of_trials = 1
-
 # run the experiment
 for n_trial in range(0, number_of_trials):
     position_x, position_y = objectSelect(images[n_trial])

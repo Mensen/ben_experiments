@@ -59,7 +59,7 @@ def lineBisectionTask(line_length, position):
     # start a trial clock
     trial_clock = core.Clock()       
     
-    # wait for a button press
+    # wait for a button press (NOTE: listener for mouse event)
     myMouse = event.Mouse(win=myWin, visible=True)
     while True:
         
@@ -71,7 +71,7 @@ def lineBisectionTask(line_length, position):
             # get the position of the click
             click_position = myMouse.getPos()
 
-            #check if click is within reason or ignore           
+            # check if click is within reason or ignore           
             if abs(click_position[0] - position[0]) < 0.4 and \
             abs(click_position[1] - position[1]) < 0.2:
                 
