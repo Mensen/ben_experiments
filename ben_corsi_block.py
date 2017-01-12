@@ -16,13 +16,29 @@ import numpy as np
 import scipy.spatial.distance
 import sys
 
-# select mode: 'classic' (all blocks present); 'scale' (num blocks scales with task)
-mode = 'classic'
-direction = 'reverse'
+# get the standard argument parser
+parser = ben_tools.getStandardOptions()
+
+# add experiment specific options
+parser.add_argument("-m", "--mode", dest="mode", help="test mode: classic or scale", 
+                  default='classic')
+parser.add_argument("-r", "--reverse", dest="flag_reverse", help="test mode: forward or reverse", 
+                  action="store_true", default=False) 
+parser.add_argument("-t", "--time", dest="display_time", type=float, help="time to display each box during presentation", 
+                  default=1.0) 
+                  
+# get command line options
+options = parser.parse_args()
+
+# process arguments (overwrite false flag_test if filename given)
+if options.filename is not None:
+    options.flag_save = True
+    options.filename = 'output_cb_' + options.mode[0] + '_'  + options.filename
+else:
+    options.filename = 'output_cb_' + options.mode[0] + '_test'
 
 # maximum number of trials
 trials_max = 20
-display_time = 0.5
 # starting number of boxes
 num_boxes = 9
 num_to_test = 3
@@ -30,11 +46,6 @@ max_fails = 3
 
 # basic box background color
 fill_color = [0.7, 0.7, 0.7]
-
-# process arguments for personalised save name
-save_name = 'output_cb_' + mode[0] + '_test'
-if len(sys.argv) > 1:
-    save_name = 'output_cb_' + mode[0] + '_' + sys.argv[1]
 
 
 def boxCoordinates(centre, size):
@@ -103,7 +114,7 @@ def makeBlocks(num_box):
     # flip the boxes on the screen                  
     myWin.flip()
     #event.waitKeys()
-    core.wait(2)
+    core.wait(1)
     return my_boxes
 
 
@@ -118,7 +129,7 @@ def corsiBlockTest(num_to_test):
         
         myWin.flip()
         
-        core.wait(display_time)
+        core.wait(options.display_time)
         
         my_boxes[block].fillColor = fill_color
 
@@ -129,7 +140,8 @@ def corsiBlockTest(num_to_test):
    
     # adjust loop for direction
     loop_range = range(0, num_to_test)
-    if direction is 'reverse':
+    
+    if options.flag_reverse:
         loop_range.reverse()
    
     for block in loop_range: 
@@ -176,7 +188,7 @@ def corsiBlockTest(num_to_test):
                     core.wait(1) 
                     myWin.flip()
                            
-                    if direction is 'reverse':
+                    if options.flag_reverse:
                         trial_time.reverse()
                         block = num_to_test-block
                           
@@ -202,7 +214,7 @@ def corsiBlockTest(num_to_test):
     myWin.flip()
     
     # check for reverse condition
-    if direction is 'reverse':
+    if options.flag_reverse:
         trial_time.reverse()
     
     return num_to_test, trial_time
@@ -243,12 +255,13 @@ def welcomeMessage(text):
     # wait for mousepress
     button = ben_tools.waitForClick(myWin)
 
+
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # main section
 # prepare experiment data to save
 data_out = data.ExperimentHandler(name='corsi block', 
-    version=mode, 
-    dataFileName=save_name)   
+    version=options.mode, 
+    dataFileName=options.filename)   
 
 # open a unique window
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMonitor", units="norm")
@@ -265,7 +278,7 @@ while trial < trials_max:
     if num_boxes < num_to_test:
         num_boxes = num_to_test
     
-    if mode is 'scale':
+    if options.mode in ['scale']:
         # number of boxes adjust to test number
         num_boxes = num_to_test
     
