@@ -219,43 +219,6 @@ def corsiBlockTest(num_to_test):
     
     return num_to_test, trial_time
 
-def welcomeMessage(text):
-    event.Mouse(visible=False)
-
-    # welcome message
-    message1 = visual.TextStim(win=myWin,
-       alignHoriz='center',
-       alignVert='center', 
-       color=(0, 0, 0),
-       colorSpace='rgb',
-       units='', 
-       pos=[0,0],
-       text=text)
-       
-    # put the message on the screen
-    message1.draw()   
-    myWin.flip()                   
-    # wait for keypress    
-    core.wait(1)
-    
-    # welcome message
-    message1 = visual.TextStim(win=myWin,
-       alignHoriz='center',
-       alignVert='center', 
-       color=(0, 0, 0),
-       colorSpace='rgb',
-       units='', 
-       pos=[0,0],
-       text='Hit any key when ready')
-       
-    # put the message on the screen
-    message1.draw()   
-    myWin.flip()
-             
-    # wait for mousepress
-    button = ben_tools.waitForClick(myWin)
-
-
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # main section
 # prepare experiment data to save
@@ -267,7 +230,7 @@ data_out = data.ExperimentHandler(name='corsi block',
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMonitor", units="norm")
 
 # run the welcomeMessage function
-welcomeMessage('Corsi Block Test')
+ben_tools.welcomeMessage(myWin, 'Corsi Block Test')
 
 # loop trials
 trial = 0
@@ -319,6 +282,9 @@ while trial < trials_max:
             
     # keep trial count in while loop
     trial = trial + 1
+    
+    # ask to continue after each trial
+    ben_tools.pushToContinue(myWin)
         
 # wait for keypress
 # event.waitKeys()
