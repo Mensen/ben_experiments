@@ -1,4 +1,8 @@
 temp/
+bwt_images/*
 output*
 *.pyc
 *~
+
+# exception for bwt images
+!bwt_images/.image_info
