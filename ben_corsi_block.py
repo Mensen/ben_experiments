@@ -14,7 +14,7 @@ from psychopy import visual, core, event, data  # import some libraries from Psy
 import ben_tools
 import numpy as np
 import scipy.spatial.distance
-import sys
+import os
 
 # get the standard argument parser
 parser = ben_tools.getStandardOptions()
@@ -31,11 +31,18 @@ parser.add_argument("-t", "--time", dest="display_time", type=float, help="time 
 options = parser.parse_args()
 
 # process arguments (overwrite false flag_test if filename given)
+direction = 'n'
+if options.flag_reverse:
+    direction = 'r'
+
 if options.filename is not None:
     options.flag_save = True
-    options.filename = 'output_cb_' + options.mode[0] + '_'  + options.filename
 else:
-    options.filename = 'output_cb_' + options.mode[0] + '_test'
+    options.filename = 'test'
+
+# check for results directory
+save_path = os.path.join('results', options.filename)
+ben_tools.checkDirectory(save_path)
 
 # maximum number of trials
 trials_max = 20
@@ -222,9 +229,10 @@ def corsiBlockTest(num_to_test):
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # main section
 # prepare experiment data to save
+save_name = os.path.join(save_path, 'output_cb_' + options.filename + '_' + options.mode[0] + '_' + direction)
 data_out = data.ExperimentHandler(name='corsi block', 
     version=options.mode, 
-    dataFileName=options.filename)   
+    dataFileName=save_name)   
 
 # open a unique window
 myWin = visual.Window([1000, 800], color=[1, 1, 1], fullscr=1, monitor="testMonitor", units="norm")
