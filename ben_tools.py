@@ -7,7 +7,8 @@ Created on Mon Dec 12 23:01:57 2016
 
 from psychopy import event, visual, core  # import some libraries from PsychoPy
 import argparse
-
+import os
+import errno
 
 def waitForClick(myWin):
     
@@ -105,3 +106,10 @@ def getStandardOptions():
                       help="boolean flag for saving data to file")
                       
     return parser
+    
+def checkDirectory(directory_name):
+    try:
+        os.makedirs(directory_name)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
