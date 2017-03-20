@@ -1,4 +1,5 @@
 temp/
+results/*
 bwt_images/*
 output*
 *.pyc
@@ -6,3 +7,6 @@ output*
 
 # exception for bwt images
 !bwt_images/.image_info
+
+# results exception for test results
+! results/test/*
