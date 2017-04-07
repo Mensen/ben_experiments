@@ -48,7 +48,6 @@ ben_tools.checkDirectory(save_path)
 trials_max = 20
 # starting number of boxes
 num_boxes = 9
-num_to_test = 3
 max_fails = 3
 
 # basic box background color
@@ -92,7 +91,20 @@ def getBoxPositions(num_box, box_size):
         box_vertices[block] = boxCoordinates(centers[block, :], box_size) 
     
     return box_vertices
+  
+
+def checkBox(click_position):
     
+    for block in range(0, num_boxes):
+        
+        if click_position[0] > my_boxes[block].vertices[0][0] and \
+            click_position[0] < my_boxes[block].vertices[2][0] and \
+            click_position[1] > my_boxes[block].vertices[0][1] and \
+            click_position[1] < my_boxes[block].vertices[1][1]:
+                    
+            return block
+
+    return 100                
     
 def makeBlocks(num_box):
 
@@ -128,7 +140,8 @@ def makeBlocks(num_box):
 def corsiBlockTest(num_to_test):
     
     # pre-allocate trial time
-    trial_time = num_to_test * [0]    
+    trial_time = num_to_test * [0]
+    missed_hits = 0
     
     for block in range(0, num_to_test):
 
@@ -151,7 +164,7 @@ def corsiBlockTest(num_to_test):
     if options.flag_reverse:
         loop_range.reverse()
    
-    for block in loop_range: 
+    for block in loop_range:
         # wait for a button press
         myMouse = event.Mouse(win=myWin, visible=True)
         
@@ -165,14 +178,14 @@ def corsiBlockTest(num_to_test):
                 # was it within the correct block?
                 myMouse.clickReset()
                 click_position = myMouse.getPos()
-                
+                                
                 trial_time[block] = trial_clock.getTime()               
                 
+                # check which box was pressed
+                clicked_box = checkBox(click_position)                
+                
                 # make sure click position is within block
-                if click_position[0] > my_boxes[block].vertices[0][0] and \
-                click_position[0] < my_boxes[block].vertices[2][0] and \
-                click_position[1] > my_boxes[block].vertices[0][1] and \
-                click_position[1] < my_boxes[block].vertices[1][1]:
+                if clicked_box is block:
                     
                     # change to green
                     my_boxes[block].fillColor = [-1, 1 , -1]
@@ -181,6 +194,14 @@ def corsiBlockTest(num_to_test):
                     my_boxes[block].fillColor = fill_color
                     break
                 
+                elif clicked_box is 100:
+                    
+                    # xount the times missed the box
+                    missed_hits += 1
+                    
+                    # wait to avoid counting click multiple times
+                    core.wait(0.08)
+                    
                 else:
                     # change all to red
                     for n in range(0, len(my_boxes)):
@@ -224,7 +245,9 @@ def corsiBlockTest(num_to_test):
     if options.flag_reverse:
         trial_time.reverse()
     
-    return num_to_test, trial_time
+    print('you missed %d times') %(missed_hits)                
+    
+    return num_to_test, trial_time, missed_hits
 
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # main section
@@ -257,7 +280,7 @@ while trial < trials_max:
     my_boxes = makeBlocks(num_boxes)   
     
     # test the participant
-    flag_correct, trial_time = corsiBlockTest(num_to_test)
+    flag_correct, trial_time, missed_clicks = corsiBlockTest(num_to_test)
 
     # exit signal
     if flag_correct == 255:
@@ -271,6 +294,8 @@ while trial < trials_max:
     data_out.addData('number_to_test', num_to_test)
     data_out.addData('number_correct', flag_correct)
     data_out.addData('trial_time', trial_time)
+    data_out.addData('missed_clicks', missed_clicks)
+
 #    # go to next trial in the loop
     data_out.nextEntry()    
 
