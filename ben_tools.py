@@ -94,7 +94,24 @@ def pushToContinue(myWin):
                
     # wait for mousepress
     button = waitForClick(myWin)
+  
+def showEnd(myWin):
     
+    # draw end text
+    cross_object = visual.TextStim(win=myWin,
+           alignHoriz='center',
+           alignVert='center',
+           units='norm',
+           height=0.6,           
+           color=(0, 0, 0),
+           colorSpace='rgb',
+           pos=[0,0],
+           text='Danke!')
+           
+    # put the image on screen
+    cross_object.draw()
+    myWin.flip() 
+  
 def getStandardOptions():
     # initiate the parser object
     parser = argparse.ArgumentParser()

@@ -33,6 +33,19 @@ if options.series is '0':
 # randomly select obejcts (without replacement)
 options.objects = np.random.choice(range(1,13), 3, replace=False)
 
+if options.filename is not None:
+    options.flag_save = True
+else:
+    options.filename = 'test'
+
+# check for results directory
+save_path = os.path.join('results', options.filename)
+ben_tools.checkDirectory(save_path)
+
+
+# main experiment
+# ---------------
+
 # get available images
 image_list = []
 image_path = os.path.join("rsc_images", options.color_scheme)
@@ -98,7 +111,7 @@ def objectSelect(current_image):
             
             # put the marker on screen
             myWin.flip()
-            core.wait(0.5)
+            core.wait(0.25)
         
         # exit on right mouse button        
         if mouse3:
@@ -114,9 +127,10 @@ def objectSelect(current_image):
             return position_x, position_y, marking_time
 
 # prepare experiment data to save
+save_name = os.path.join(save_path, 'output_rsc_' + options.filename + '_s' + options.series)
 data_out = data.ExperimentHandler(name='random shape cancellation', 
       version='alpha',
-      dataFileName='output_rsc_s' + options.series)
+      dataFileName=save_name)
 
 # open a new window
 myWin = visual.Window( 
@@ -168,6 +182,9 @@ for n_trial in range(options.start_trial - 1, 3):
         ben_tools.pushToContinue(myWin)
     
 # wait 500ms and close the screen
-core.wait(0.5)
+ben_tools.showEnd(myWin)
+ben_tools.waitForClick(myWin)
+
+core.wait(0.25)
 myWin.close()
 core.quit
