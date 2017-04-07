@@ -48,6 +48,7 @@ ben_tools.checkDirectory(save_path)
 trials_max = 20
 # starting number of boxes
 num_boxes = 9
+num_to_test = 2
 max_fails = 3
 
 # basic box background color
