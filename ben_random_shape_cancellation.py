@@ -30,8 +30,8 @@ options = parser.parse_args()
 if options.series is '0':
     options.series = str(np.random.randint(1, 5))
 
-# randomly select obejcts
-options.objects = np.random.randint(1, 13, 3)
+# randomly select obejcts (without replacement)
+options.objects = np.random.choice(range(1,13), 3, replace=False)
 
 # get available images
 image_list = []
