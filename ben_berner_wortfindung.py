@@ -4,7 +4,7 @@ Created on Sat Feb  4 19:16:37 2017
 
 @author: mensen
 """
-
+from __future__ import division
 from psychopy import visual, core, event, data  # import some libraries from PsychoPy
 import ben_tools
 import os
@@ -17,6 +17,9 @@ CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
+
+# define fixed variables
+MAX_TIME = 10
 
 # get the standard argument parser
 parser = ben_tools.getStandardOptions()
@@ -61,36 +64,68 @@ data_out = data.ExperimentHandler(name='object recognition',
       dataFileName=os.path.join(save_path, 'output_bwt_' + options.filename),
       savePickle=options.flag_save,
       saveWideText=options.flag_save)
+
+def showFixation():
     
-# open new window
-myWin = visual.Window( 
-    color=[1, 1, 1], 
-    fullscr=1, 
-    monitor="testMonitor", 
-    units="norm")
+    # draw fixation cross
+    cross_object = visual.TextStim(win=myWin,
+           alignHoriz='center',
+           alignVert='center',
+           units='norm',
+           height=0.6,           
+           color=(0, 0, 0),
+           colorSpace='rgb',
+           pos=[0,0],
+           text='+')
+           
+    # put the image on screen
+    cross_object.draw()
+    myWin.flip()    
 
-# run the welcomeMessage function
-ben_tools.welcomeMessage(myWin, 'Wortfindungstest')
+def showEnd():
     
-# pre-allocate trial time
-num_trials = len(image_list) - 1
-trial_time = num_trials * [0]
-trial_response = num_trials * [0]
+    # draw end text
+    cross_object = visual.TextStim(win=myWin,
+           alignHoriz='center',
+           alignVert='center',
+           units='norm',
+           height=0.6,           
+           color=(0, 0, 0),
+           colorSpace='rgb',
+           pos=[0,0],
+           text='Danke!')
+           
+    # put the image on screen
+    cross_object.draw()
+    myWin.flip() 
 
-# loop each trial
-for n_trial in range(0, num_trials):
-
-    # start with fixation cross
+def runTrial(): 
     
-
     # prepare the image
     bwt_image = visual.ImageStim(myWin,
     pos=[0,0],                             
-    units='norm',
-    size=[1, 2])
-
+    units='pix')
+       
     # set the specific image
     bwt_image.setImage(os.path.join(image_path, image_list[n_trial]) + '.jpg')
+
+    # find the image size  
+    image_size = bwt_image.size
+    image_ratio = image_size[0] / image_size[1]
+
+#    print('image size was %d by %d, window ratio is %f, image ratio %f') %(image_size[0], image_size[1], window_ratio, image_ratio)
+
+    # adjust the image size to screen
+    if image_ratio > window_ratio:
+        # longer picture
+        adjust_value = window_size[0] / image_size[0]
+    else:
+        # taller picture
+        adjust_value = window_size[1] / image_size[1]
+
+    bwt_image.size = [image_size[0] * adjust_value, image_size[1] * adjust_value]
+#    print('image size is %d by %d, adjust factor %f') %(bwt_image.size[0], bwt_image.size[1], adjust_value)
+    
     bwt_image.draw(myWin)
     # put the image on screen
     myWin.flip()
@@ -102,10 +137,14 @@ for n_trial in range(0, num_trials):
     myMouse = event.Mouse(win=myWin, visible=True)
     
     # eliminate previous recording
-    frames = []    
+    frames = []
     
-    while True:
-        
+    # reset variables
+    response_time = MAX_TIME
+    flag_stop = False
+    
+    while trial_clock.getTime() < MAX_TIME:
+    
         myMouse.clickReset()
         mouse1, mouse2, mouse3 = myMouse.getPressed()
         
@@ -114,28 +153,77 @@ for n_trial in range(0, num_trials):
         frames.append(data)        
         
         if mouse1:
-            trial_response[n_trial] = 1
-            break
+            response_time = trial_clock.getTime()
             
+            if n_trial is not num_trials - 1:
+                showFixation()
+                flag_stop = True
+            else:
+                showEnd()
+                flag_stop = True
+        
         elif mouse3:
-            trial_response[n_trial] = 0
+            response_time = 0
             break
+        
+        if flag_stop:
+            if trial_clock.getTime() > response_time + 1.5:
+                break
+          
     
-    # record trial time
-    trial_time[n_trial] = trial_clock.getTime()            
-
     # save audio recording      
-    wf = wave.open(os.path.join(save_path, 'audio', 'bwt_' + options.filename + '_' + image_list[n_trial]), 'wb')
+    wf = wave.open(os.path.join(save_path, 'audio', 'bwt_' + options.filename + '_' + image_list[n_trial] + '.wav'), 'wb')
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(p.get_sample_size(FORMAT))
     wf.setframerate(RATE)
     wf.writeframes(b''.join(frames))
     wf.close()
+    
+    if response_time >= MAX_TIME:
+        showFixation()
+        core.wait(1.5)
+    
+    return response_time
+    
+
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+# main section
+
+# open new window
+myWin = visual.Window( 
+    color=[1, 1, 1], 
+    fullscr=1, 
+    monitor="testMonitor", 
+    units="pix")
+
+window_size = myWin.size
+window_ratio = window_size[0]/window_size[1]
+print('screen size is %d') %(window_size[0]) 
+
+# run the welcomeMessage function
+ben_tools.welcomeMessage(myWin, 'Wortfindungstest')
+    
+# pre-allocate trial time
+num_trials = len(image_list) - 1
+trial_time = num_trials * [0]
+trial_response = num_trials * [0]
+
+# fixation window to start
+showFixation()
+core.wait(2)
+
+# loop each trial
+for n_trial in range(0, num_trials):
+
+    response_time = runTrial()
+
+    # check for stopping condition
+    if response_time is 0:
+        break
 
     # save the parameters
     data_out.addData('object_name', image_list[n_trial])
-    data_out.addData('response', trial_response[n_trial])
-    data_out.addData('time', trial_time[n_trial])
+    data_out.addData('time', response_time)
     
     # go to next trial in the loop
     core.wait(0.25)
