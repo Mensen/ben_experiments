@@ -2,6 +2,7 @@ temp/
 results/*
 bwt_images/*
 output*
+*.txt
 *.pyc
 *~
 
@@ -10,3 +11,7 @@ output*
 
 # results exception for test results
 ! results/test/*
+
+# exception for bwt example texts
+bwt_example_list.txt
+
