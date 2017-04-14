@@ -324,6 +324,9 @@ while trial < trials_max:
 # event.waitKeys()
 
 # quit the program
-core.wait(0.25)
+ben_tools.showEnd(myWin)
+ben_tools.waitForClick(myWin)
+
+core.wait(1)
 myWin.close()
 core.quit
