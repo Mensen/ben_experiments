@@ -9,6 +9,8 @@ from psychopy import visual, core, event, data  # import some libraries from Psy
 import ben_tools
 import numpy as np
 import os
+import pyaudio  
+import wave
 
 # get the standard argument parser
 parser = ben_tools.getStandardOptions()
@@ -29,20 +31,28 @@ if options.filename is not None:
 else:
     options.filename = 'test'
 
+# maximum of 10 trials
+if options.num_trials > 10:
+    options.num_trials = 10
+
 # check for results directory
 save_path = os.path.join('results', options.filename)
 ben_tools.checkDirectory(save_path)
 
+# manually define number of expected answers to each question
+n_answers = [1, 1, 2, 2, 1, 1, 1, 2, 2, 2]
+
 
 # define color_scheme
 def defineColors():
-
-    color_scheme = np.ones((4, 5, 3))
-    
+   
     COLOR_BLUE = np.array([-1, -1, 1])
     COLOR_RED = np.array([1, -1, -1])
     COLOR_YELLOW = np.array([1, 1, -1])
     COLOR_GREEN = np.array([-1, 0.75, -1])
+    
+    # pre-allocate color_scheme
+    color_scheme = np.ones((4, 5, 3))
     
     # all the blues
     color_scheme[0,0] = COLOR_BLUE
@@ -106,13 +116,37 @@ def drawTokens():
     core.wait(0.1)
     
     return objects
-     
-def runTrial():
+
+def playAudio():
+    # open the audio file (n + 1 because of 0 indexing)
+    f = wave.open("token_test_audio/tt_" + str(n + 1) + ".wav","rb")  
+
+    #open stream  
+    stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
+                    channels = f.getnchannels(),  
+                    rate = f.getframerate(),  
+                    output = True)  
+    #read data  
+    data = f.readframes(CHUNK_SIZE)  
+    
+    #play stream  
+    while data:  
+        stream.write(data)  
+        data = f.readframes(CHUNK_SIZE)  
+    
+    #stop stream  
+    stream.stop_stream()  
+    stream.close()  
+
+def runTrial(expected_answers):
     
     # pre-allocate answers so we can append to them for double answers
-        
+    row_selected = []
+    shape_selected = []
+    trial_time = []    
     
     # present the task question using audio file
+    playAudio()
 
     # start a trial clock
     trial_clock = core.Clock()    
@@ -132,7 +166,7 @@ def runTrial():
                 
 #            print('click position is %d %d') %(click_position[0], click_position[1])
             # get trial time
-            trial_time = trial_clock.getTime() 
+            temp_time = trial_clock.getTime() 
 
             # figure out which line was clicked on
             distance_to_shapes = object_x_centers - click_position[0]
@@ -153,25 +187,40 @@ def runTrial():
                 # return to normal
                 objects[row_index][shape_index].lineColor = background_color
                 myWin.flip()
-                break
-            
+                
+                # store the result
+                row_selected.append(row_index)
+                shape_selected.append(shape_index)   
+                trial_time.append(temp_time)
+                           
             else:
                 
                 # replay the trial instruction
-                x = 1                
+                playAudio()
                 
         if mouse3:
             
+            # overwrite any previous answer and exit
             row_index = 100
             shape_index = 100
             trial_time = 0
             break
 
+        # check for sufficient responses (1 or 2)
+        if len(row_selected) is expected_answers:
+            break
+        
     return row_index, shape_index, trial_time
       
     
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # main section
+    
+#instantiate PyAudio  
+p = pyaudio.PyAudio()     
+#define stream chunk   
+CHUNK_SIZE = 1024
+    
 # prepare experiment data to save
 save_name = os.path.join(save_path, 'output_tt_' + options.filename)
 data_out = data.ExperimentHandler(name='token test', 
@@ -193,14 +242,15 @@ print('screen size is %d') %(myWin.size[0])
 object_x_centers = np.linspace(-500, 500, num = 5)
 object_y_centers = np.linspace(-300, 300, num = 4)
 
-# loop trials
+# get the colorscheme and then draw the token
 color_scheme = defineColors()
 objects = drawTokens()
 
+# loop trials
 for n in range(0, options.num_trials):
     
     # run the trial
-    row_index, shape_index, trial_time = runTrial();
+    row_index, shape_index, trial_time = runTrial(n_answers[n]);
     
     # check if quit
     if row_index is 100:
