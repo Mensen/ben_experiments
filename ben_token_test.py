@@ -239,8 +239,8 @@ def runTrial(expected_answers):
                 myWin.flip()
                 
                 # store the result
-                row_selected.append(row_index)
-                shape_selected.append(shape_index)   
+                row_selected.append(row_index + 1)
+                shape_selected.append(shape_index + 1)   
                 trial_time.append(temp_time)
                            
             else:
@@ -251,8 +251,8 @@ def runTrial(expected_answers):
         if mouse3:
             
             # overwrite any previous answer and exit
-            row_index = 100
-            shape_index = 100
+            row_selected = 100
+            shape_selected = 100
             trial_time = 0
             break
 
@@ -260,7 +260,7 @@ def runTrial(expected_answers):
         if len(row_selected) is expected_answers:
             break
         
-    return row_index, shape_index, trial_time
+    return row_selected, shape_selected, trial_time
       
     
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -315,8 +315,8 @@ for n in range(0, options.num_trials):
     
     # record the results
     data_out.addData('question', n + 1)
-    data_out.addData('row', row_index + 1)
-    data_out.addData('shape', shape_index + 1)
+    data_out.addData('row', row_index)
+    data_out.addData('shape', shape_index)
     data_out.addData('time', trial_time)
     data_out.addData('correct', 0)
     
