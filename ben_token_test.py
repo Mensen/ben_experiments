@@ -329,9 +329,6 @@ for n in range(0, options.num_trials):
         color_scheme = defineColors(version)
         objects = drawTokens(version)
 
-# print result of trial in the command line
-print('you hit row %d and shape %d') %(row_index + 1, shape_index + 1) 
-
 # quit the program
 eraseTokens()
 ben_tools.showEnd(myWin)

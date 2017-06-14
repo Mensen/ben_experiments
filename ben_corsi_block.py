@@ -221,14 +221,14 @@ def corsiBlockTest(num_to_test):
                         trial_time.reverse()
                         block = num_to_test-block
                           
-                    return block, trial_time
+                    return block, trial_time, missed_hits
             
             if mouse3:
                 for n in range(0, len(my_boxes)):
                     my_boxes[n].setAutoDraw(False)
         
                 myWin.flip() 
-                return 255, trial_time     
+                return 255, trial_time, missed_hits
             
     # if all correct flash all green
     for n in range(0, len(my_boxes)):
@@ -298,7 +298,7 @@ while trial < trials_max:
     data_out.addData('missed_clicks', missed_clicks)
 
 #    # go to next trial in the loop
-    data_out.nextEntry()    
+    data_out.nextEntry() 
 
     # process arguments for next trial
     if flag_correct == num_to_test:
