@@ -161,7 +161,6 @@ def corsiBlockTest(num_to_test):
    
     # adjust loop for direction
     loop_range = range(0, num_to_test)
-    
     if options.flag_reverse:
         loop_range.reverse()
    
@@ -174,6 +173,9 @@ def corsiBlockTest(num_to_test):
             
             myMouse.clickReset()
             mouse1, mouse2, mouse3 = myMouse.getPressed()
+            
+            # also look for keyboard presses to advance to next trial
+            key_pressed = event.getKeys(keyList = ['space', 'escape', 'backspace'], timeStamped=trial_clock)
             
             if mouse1:
                 # was it within the correct block?
@@ -191,6 +193,10 @@ def corsiBlockTest(num_to_test):
                     # change to green
                     my_boxes[block].fillColor = [-1, 1 , -1]
                     myWin.flip()
+                    
+                    # wait a little bit to avoid double clicks
+                    core.wait(0.150)
+                    
                     # change back to grey (flipped after next click)
                     my_boxes[block].fillColor = fill_color
                     break
@@ -222,14 +228,23 @@ def corsiBlockTest(num_to_test):
                         block = num_to_test-block
                           
                     return block, trial_time, missed_hits
-            
-            if mouse3:
-                for n in range(0, len(my_boxes)):
-                    my_boxes[n].setAutoDraw(False)
+                
+            if key_pressed:
+                if key_pressed[0][0] == 'escape':
+                    for n in range(0, len(my_boxes)):
+                        my_boxes[n].setAutoDraw(False)
         
-                myWin.flip() 
-                return 255, trial_time, missed_hits
-            
+                    myWin.flip() 
+                    return 255, trial_time, missed_hits
+                
+                if key_pressed[0][0] == 'backspace':
+                    # remove boxes
+                    for n in range(0, len(my_boxes)):
+                        my_boxes[n].setAutoDraw(False)
+                    
+                    myWin.flip() 
+                    return 99, trial_time, missed_hits
+                    
     # if all correct flash all green
     for n in range(0, len(my_boxes)):
         my_boxes[n].fillColor = [-1, 1 , -1]
@@ -286,6 +301,8 @@ while trial < trials_max:
     # exit signal
     if flag_correct == 255:
         break
+    elif flag_correct == 99:
+        continue
     
     # print result of trial in the command line
     print('you got %d of %d correct') %(flag_correct, num_to_test) 
