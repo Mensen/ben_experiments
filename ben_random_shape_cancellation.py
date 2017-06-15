@@ -16,7 +16,7 @@ parser = ben_tools.getStandardOptions()
 # add experiment specific options
 parser.add_argument("-c", "--color", dest="color_scheme", help="define color scheme", 
                   default='light')
-                  
+
 parser.add_argument("-t", "--trial", dest="start_trial", type=int, help="difficulty to start with", 
                   default=1)                  
  
@@ -29,6 +29,7 @@ options = parser.parse_args()
 # check image series
 if options.series is '0':
     options.series = str(np.random.randint(1, 5))
+    print ('image series %s is selected') %options.series
 
 # randomly select obejcts (without replacement)
 options.objects = np.random.choice(range(1,13), 3, replace=False)
@@ -49,10 +50,15 @@ ben_tools.checkDirectory(save_path)
 # get available images
 image_list = []
 image_path = os.path.join("rsc_images", options.color_scheme)
-for file in os.listdir(image_path):
+
+# sort the list alphanumerically
+file_list = os.listdir(image_path)
+file_list.sort()
+
+for file in file_list:
     if options.color_scheme in file and '_' + options.series in file and file.lower().endswith(".png"):
         image_list.append(file)
-   
+  
 # get object images
 object_list = []
 object_path = os.path.join("rsc_images", 'objects')
@@ -81,13 +87,17 @@ def objectSelect(current_image):
     myMouse = event.Mouse(win=myWin, visible=True)
     
     # start a trial clock
-    trial_clock = core.Clock()    
+    trial_clock = core.Clock()
+    key_pressed = event.getKeys(timeStamped=trial_clock) 
     
     while True:
         
         myMouse.clickReset()
         mouse1, mouse2, mouse3 = myMouse.getPressed()
 
+        # also look for keyboard presses to advance to next trial
+        key_pressed = event.getKeys(keyList = ['space', 'escape'], timeStamped=trial_clock)
+        
         if mouse1:
             # get the position of the click
             click_position = myMouse.getPos()
@@ -112,19 +122,33 @@ def objectSelect(current_image):
             # put the marker on screen
             myWin.flip()
             core.wait(0.25)
-        
-        # exit on right mouse button        
-        if mouse3:
-                        
-            # erase markers
-            for n in range(0, len(markings)):
-                markings[n].autoDraw=False
-
-            # clear the screen
-            rsc_image.autoDraw=False
-            myWin.flip()
+                   
+        if key_pressed:
+            # if space is pressed go to next trial
+            if key_pressed[0][0] == 'space':                       
+                # erase markers
+                for n in range(0, len(markings)):
+                    markings[n].autoDraw=False
+    
+                # clear the screen
+                rsc_image.autoDraw=False
+                myWin.flip()
+                
+                return position_x, position_y, marking_time
             
-            return position_x, position_y, marking_time
+            # TODO: if escape is pressed exit the experiment immediately
+            if key_pressed[0][0] == 'escape':                       
+                # erase markers
+                for n in range(0, len(markings)):
+                    markings[n].autoDraw=False
+    
+                # clear the screen
+                rsc_image.autoDraw=False
+                myWin.flip()
+                
+                # insert quit marker into position_x
+                position_x[0] = 99
+                return position_x, position_y, marking_time
 
 # prepare experiment data to save
 save_name = os.path.join(save_path, 'output_rsc_' + options.filename + '_s' + options.series)
@@ -153,6 +177,8 @@ object_image = visual.ImageStim(myWin,
 # run the experiment
 for n_trial in range(options.start_trial - 1, 3):
     
+    print n_trial    
+    
     # present object alone
     object_image.setImage(os.path.join(object_path, object_list[options.objects[n_trial] - 1]))
     object_image.draw(myWin)
@@ -163,6 +189,11 @@ for n_trial in range(options.start_trial - 1, 3):
     # present complete image and collect press
     position_x, position_y, marking_time = objectSelect(
         os.path.join(image_path, image_list[n_trial]))
+
+    # check for quick exit
+    if position_x:
+        if position_x[0] is 99:
+            break
 
     # save the parameters
     data_out.addData('difficulty', n_trial + 1)

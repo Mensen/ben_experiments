@@ -69,7 +69,7 @@ def takeABreak(myWin, pause_time):
            colorSpace='rgb',
            units='', 
            pos=[0,0],
-           text='Zeit fuer eine Pause.')
+           text='Super! Zeit fuer eine Pause.')
     
     # put the message on the screen
     message1.draw()   
@@ -93,7 +93,7 @@ def pushToContinue(myWin):
     myWin.flip()        
                
     # wait for mousepress
-    button = waitForClick(myWin)
+    waitForClick(myWin)
   
 def showEnd(myWin):
     
